@@ -1,0 +1,24 @@
+{
+  "name": "filebus",
+  "version": "0.0.1",
+  "description": "I/O based on inotify and file watchers",
+  "main": "cjs/index.js",
+  "scripts": {
+    "build": "npm run cjs && npm run test",
+    "cjs": "ascjs esm cjs && sed -i \"s/Object.defineProperty(exports, '__esModule', {value: true}).default/module.exports/\" cjs/index.js",
+    "test": "istanbul cover test/index.js"
+  },
+  "keywords": [
+    "file",
+    "bus",
+    "inotify",
+    "channel"
+  ],
+  "author": "Andrea Giammarchi",
+  "license": "ISC",
+  "devDependencies": {
+    "ascjs": "^3.0.1",
+    "istanbul": "^0.4.5"
+  },
+  "module": "esm/index.js"
+}
