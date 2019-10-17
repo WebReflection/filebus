@@ -20,5 +20,8 @@
     "ascjs": "^3.0.1",
     "istanbul": "^0.4.5"
   },
-  "module": "esm/index.js"
+  "module": "esm/index.js",
+  "dependencies": {
+    "inotifywait-spawn": "^0.1.0"
+  }
 }

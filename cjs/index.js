@@ -18,91 +18,112 @@
  */
 
 const {EventEmitter} = require('events');
-const {readFile, watch, writeFile} = require('fs');
-const {basename, dirname, resolve} = require('path');
+const {exists, readFile, writeFile} = require('fs');
+const {resolve} = require('path');
+const {exec} = require('child_process');
 
-const DEBOUNCE = 100;
+const INW = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('inotifywait-spawn'));
+const {IN_CLOSE_WRITE} = INW;
+
 const {stringify, parse} = JSON;
 const {trim} = '';
 
-const notifiers = new WeakMap;
-
-const create = path => {
-  path = resolve(path);
-  return {path, file: basename(path), dir: dirname(path), _: null};
-};
+const busses = new WeakMap;
 
 module.exports = class FileBus extends EventEmitter {
-  constructor(input, output) {
+  constructor(input = '', output = '') {
     super();
-    const notifier = {
-      input: input ? create(input) : null,
-      output: output ? create(output) : null
-    };
-    notifiers.set(this, notifier);
-    if (input) {
-      const {dir, file, path} = notifier.input;
-      let i = 0;
-      notifier.input._ = watch(dir, {recursive: true}, (event, name) => {
-        if (event === 'change' && name === file) {
-          clearTimeout(i);
-          i = setTimeout(
-            () => {
-              readFile(path, (err, data) => {
-                if (!this.active)
-                  return;
-                /* istanbul ignore if */
-                if (err)
-                  this.emit('error', path);
-                else {
-                  const content = trim.call(data);
-                  if (content) {
-                    const i = content.indexOf(' ');
-                    if (i < 0)
-                      this.emit(content, null);
-                    else {
-                      const type = content.slice(0, i);
-                      const json = trim.call(content.slice(i + 1));
-                      this.emit(type, parse(json));
-                    }
-                  }
-                }
-              });
-            },
-            DEBOUNCE
-          );
+    const bus = {
+      input,
+      output: output ? resolve(output) : '',
+      ready: new Promise((resolve, reject) => {
+        if (input) {
+          exists(input, exists => {
+            /* istanbul ignore if */
+            if (!this.active)
+              return;
+            const whenExists = err => {
+              /* istanbul ignore if */
+              if (!this.active)
+                resolve();
+              /* istanbul ignore if */
+              if (err)
+                reject(err);
+              else {
+                resolve(
+                  new INW(input, {events: IN_CLOSE_WRITE}).on(IN_CLOSE_WRITE, () => {
+                    readFile(input, (err, data) => {
+                      /* istanbul ignore if */
+                      if (!this.active)
+                        return;
+                      /* istanbul ignore if */
+                      if (err)
+                        this.emit('error', err, input);
+                      else {
+                        const content = trim.call(data);
+                        if (content) {
+                          const i = content.indexOf(' ');
+                          if (i < 0)
+                            this.emit(content, null);
+                          else {
+                            const type = content.slice(0, i);
+                            const json = trim.call(content.slice(i + 1));
+                            this.emit(type, parse(json));
+                          }
+                        }
+                      }
+                    });
+                  })
+                );
+              };
+            }
+            /* istanbul ignore if */
+            if (exists)
+              whenExists();
+            else
+              writeFile(input, '', whenExists);
+          });
         }
-      });
-    }
+        else
+          resolve();
+      })
+    };
+    busses.set(this, bus);
   }
-  get active() { return notifiers.has(this); }
+  get active() { return busses.has(this); }
   send(type, json) {
-    return new Promise((resolve, reject) => {
-      if (this.active) {
-        const {output} = notifiers.get(this);
-        if (output) {
-          const data = json != null ? `${type} ${stringify(json)}` : type;
-          writeFile(output.path, data, err => {
+    const {active, constructor} = this;
+    if (active) {
+      const {ready, output} = busses.get(this);
+      if (output) {
+        return ready.then(() => new Promise((resolve, reject) => {
+          const data = json == null ? type : `${type} ${stringify(json)}`;
+          writeFile(output, data, err => {
             /* istanbul ignore if */
             if (err)
               reject(err);
             else
-              resolve(json);
+              exec('sync', err => {
+                /* istanbul ignore if */
+                if (err)
+                  reject(err);
+                else
+                  resolve(json);
+              });
           });
-        }
-        else
-          reject(FileBus.name + ' without output');
+        }));
       }
       else
-        reject(FileBus.name + ' stopped');
-    });
+        return Promise.reject(`${constructor.name} without destination`);
+    }
+    else
+      return Promise.reject(`${constructor.name} stopped`);
   }
   stop() {
     if (this.active) {
-      const {input} = notifiers.get(this);
-      notifiers.delete(this);
-      if (input)
-        input._.close();
+      const {ready} = busses.get(this);
+      busses.delete(this);
+      ready.then(_ => (_ && _.stop()));
     }
   }
 };
