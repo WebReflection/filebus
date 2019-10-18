@@ -5,7 +5,11 @@
   "main": "cjs/index.js",
   "scripts": {
     "build": "npm run cjs && npm run test",
-    "cjs": "ascjs esm cjs && sed -i \"s/Object.defineProperty(exports, '__esModule', {value: true}).default/module.exports/\" cjs/index.js",
+    "cjs": "ascjs esm cjs && npm run clean:fb && npm run clean:fbin && npm run clean:fbout && npm run clean:require",
+    "clean:fb": "sed -i \"s/Object.defineProperty(exports, '__esModule', {value: true}).default/module.exports/\" cjs/index.js",
+    "clean:fbin": "sed -i \"s/Object.defineProperty(exports, '__esModule', {value: true}).default/module.exports/\" cjs/filebus-in.js",
+    "clean:fbout": "sed -i \"s/Object.defineProperty(exports, '__esModule', {value: true}).default/module.exports/\" cjs/filebus-out.js",
+    "clean:require": "sed -i 's/(m => m.__esModule [^)]*)//' cjs/filebus-in.js && sed -i 's/(m => m.__esModule [^)]*)//' cjs/index.js",
     "test": "istanbul cover test/index.js"
   },
   "keywords": [
@@ -22,6 +26,6 @@
   },
   "module": "esm/index.js",
   "dependencies": {
-    "inotifywait-spawn": "^0.1.0"
+    "inotifywait-spawn": "^0.1.3"
   }
 }
