@@ -26,6 +26,6 @@
   },
   "module": "esm/index.js",
   "dependencies": {
-    "inotifywait-spawn": "^0.1.4"
+    "inotifywait-spawn": "^1.0.0"
   }
 }
