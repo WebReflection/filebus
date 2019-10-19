@@ -10,6 +10,10 @@ A communication channel based on files watcher.
 
 ### Example
 
+You can clone this repository, enter into the `example` folder and launch `npm start` to see Python and NodeJS communicating with each other.
+
+You can also grasp most of this utility via the following example:
+
 ```js
 const FileBus = require('filebus');
 
@@ -39,9 +43,10 @@ fb.stop();
 
 // will write the following into the output file
 // "event {"optional":"data"}"
-// if there is a watcher listening for "event"
-// it will be invoked with {optional: 'data'}
-fb.send('event', {optional: 'data'}).then(() => {
+// if there is a watcher listening for "ready",
+// or any other event name, it will be invoked
+// receiving the object {optional: 'data'}
+fb.send('ready', {optional: 'data'}).then(() => {
   // executed once the content has been written
   // and also synced with the system
 });
