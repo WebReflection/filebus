@@ -27,5 +27,13 @@
   "module": "esm/index.js",
   "dependencies": {
     "inotifywait-spawn": "^1.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WebReflection/filebus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/WebReflection/filebus/issues"
+  },
+  "homepage": "https://github.com/WebReflection/filebus#readme"
 }
