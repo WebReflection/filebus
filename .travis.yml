@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - stable
+sudo:
+    required
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install inotify-tools
+git:
+  depth: 1
+branches:
+  only:
+    - master
+after_success:
+  - "npm run coveralls"
