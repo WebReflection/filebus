@@ -1,6 +1,6 @@
 {
   "name": "filebus",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "I/O based on inotify and file watchers",
   "main": "cjs/index.js",
   "scripts": {
