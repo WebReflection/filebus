@@ -1,5 +1,7 @@
 # filebus
 
+[![Build Status](https://travis-ci.com/WebReflection/filebus.svg?branch=master)](https://travis-ci.com/WebReflection/filebus) [![Coverage Status](https://coveralls.io/repos/github/WebReflection/filebus/badge.svg?branch=master)](https://coveralls.io/github/WebReflection/filebus?branch=master)
+
 A communication channel based on files watcher.
 
 
