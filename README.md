@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.com/WebReflection/filebus.svg?branch=master)](https://travis-ci.com/WebReflection/filebus) [![Coverage Status](https://coveralls.io/repos/github/WebReflection/filebus/badge.svg?branch=master)](https://coveralls.io/github/WebReflection/filebus?branch=master)
 
+<sup>**Social Media Photo by [Juan Encalada](https://unsplash.com/@juanencalada) on [Unsplash](https://unsplash.com/)**</sup>
+
+
 A communication channel based on files watcher.
 
 
@@ -50,6 +53,12 @@ fb.send('event', {optional: 'data'}).then(() => {
 This module contains a [python/filebus.py](./python/filebus.py) file where you can import `FileBus` and use pretty much exact same API.
 
 Please note the python file also relies in this module dependencies, so that [inotifywait-spawn](https://github.com/WebReflection/inotifywait-spawn#readme) module must be installed too, otherwise its `python/inotifywait.py` would be missing.
+
+`inotifywait` requires the Python 3 [inotify_simple](https://pypi.org/project/inotify_simple/) module.
+
+```sh
+sudo pip3 install inotify_simple
+```
 
 To import `FileBus` you can write the following:
 
