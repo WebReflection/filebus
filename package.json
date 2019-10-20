@@ -28,7 +28,7 @@
   },
   "module": "esm/index.js",
   "dependencies": {
-    "inotifywait-spawn": "^1.0.0"
+    "inotifywait-spawn": "^1.0.2"
   },
   "repository": {
     "type": "git",

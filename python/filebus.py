@@ -1,5 +1,6 @@
 import os
 import json
+import random
 
 # import EventEmitter, INotifyWait from 'inotifywait-spawn'
 import sys
@@ -66,29 +67,35 @@ class FileBus(EventEmitter):
 
   def __init__(self, input = '', output = '', cleanup = False):
     super(FileBus, self).__init__()
-    self.cleanup = cleanup
 
-    if len(input):
-      self.__in = FileInBus(self, os.path.abspath(input))
-    else:
-      self.__in = None
+    self.__shake = False
+    self.__secret = ''
+    self.cleanup = cleanup
 
     if len(output):
       self.__out = FileOutBus(self, os.path.abspath(output))
     else:
       self.__out = None
 
-  def on(self, type, callback):
-    super().on(type, callback)
-    if self.__in is not None:
-      self.__in.update()
+    if len(input):
+      self.__in = FileInBus(self, os.path.abspath(input))
+      if self.__out is not None:
+        self.__secret = '__Python__' + str(random.random())
+        self.on('__handshake__', self.__onhandshake)
+    else:
+      self.__in = None
+
+  @property
+  def active(self):
+    return self.__in is not None or self.__out is not None
 
   def send(self, type, data = None):
     return self.__out.send(type, data)
 
   def stop(self):
-    otherFile = ''
+    self.removeAllListeners()
 
+    otherFile = ''
     if self.__out is not None:
       otherFile = self.__out.file
       self.__out = None
@@ -101,6 +108,46 @@ class FileBus(EventEmitter):
       self.__in = None
       if self.cleanup and file != otherFile:
         os.unlink(file)
+
+  def __onhandshake(self, secret):
+    if self.__out is not None and secret != self.__secret and secret[0:1] != '!':
+      self.send('__handshake__', '!' + secret)
+
+  def __handshake(self, secret):
+    if secret[0:1] == '!' and secret[1:] == self.__secret:
+      self.__shake = False
+      self.removeListener('__handshake__', self.__handshake)
+      if self.active:
+        self.emit('handshake')
+
+  def handshake(self):
+    if self.active:
+      if len(self.__secret) > 0:
+        self.on('__handshake__', self.__handshake)
+        self.__shake = True
+        delay = 0.25
+        while self.__shake:
+          self.send('__handshake__', self.__secret)
+          time.sleep(delay)
+          delay = delay * 1.5
+      else:
+        self.emit('handshake')
+
+  def __inUpdate(self):
+    if self.__in is not None:
+      self.__in.update()
+
+  def on(self, type, callback):
+    super().on(type, callback)
+    self.__inUpdate()
+
+  def removeListener(self, type, callback):
+    super().removeListener(type, callback)
+    self.__inUpdate()
+
+  def removeAllListeners(self):
+    super().removeAllListeners()
+    self.__inUpdate()
 
 # # EXAMPLE
 # fb = FileBus('test.txt', 'test.txt', True)

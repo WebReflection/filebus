@@ -24,21 +24,66 @@ const FileInBus = (require('./filebus-in.js'));
 const FileOutBus = (require('./filebus-out.js'));
 const { unlink } = require('fs');
 
+const HANDHSAKE = '__handshake__';
+
 const inBus = new WeakMap;
 const outBus = new WeakMap;
+const secrets = new WeakMap;
+
+let random = Math.random();
 
 module.exports = class FileBus extends EventEmitter {
 
   constructor(input = '', output = '', cleanup = false) {
     super();
     this.cleanup = cleanup;
-    if (input)
-      inBus.set(this, new FileInBus(this, resolve(input)));
     if (output)
       outBus.set(this, new FileOutBus(this, resolve(output)));
+    if (input) {
+      inBus.set(this, new FileInBus(this, resolve(input)));
+      if (output) {
+        const secret = '__JS__' + ++random;
+        secrets.set(this, secret);
+        this.on(HANDHSAKE, value => {
+          if (outBus.has(this) && secret !== value && value[0] !== '!')
+            this.send(HANDHSAKE, '!' + value);
+        });
+      }
+    }
   }
 
   get active() { return inBus.has(this) || outBus.has(this); }
+
+  handshake() {
+    if (this.active) {
+      const emit = () => {
+        /* istanbul ignore else */
+        if (this.active)
+          this.emit('handshake');
+      };
+      if (secrets.has(this)) {
+        let timer = 0;
+        const secret = secrets.get(this);
+        this.on(HANDHSAKE, function handshake(value) {
+          /* istanbul ignore else */
+          if (value[0] === '!' && value.slice(1) === secret) {
+            clearTimeout(timer);
+            this.removeListener(HANDHSAKE, handshake);
+            emit();
+          }
+        });
+        (function handshake(self, delay) {
+          /* istanbul ignore else */
+          if (self.active) {
+            timer = setTimeout(handshake, delay, self, delay * 1.5);
+            self.send(HANDHSAKE, secret);
+          }
+        }(this, 250));
+      }
+      else
+        setTimeout(emit);
+    }
+  }
 
   send(type, json) {
     return outBus.has(this) ?
@@ -47,6 +92,8 @@ module.exports = class FileBus extends EventEmitter {
   }
 
   stop() {
+    this.removeAllListeners();
+
     let otherFile = '';
     if (outBus.has(this)) {
       const {file} = outBus.get(this);
@@ -55,6 +102,7 @@ module.exports = class FileBus extends EventEmitter {
       if (this.cleanup)
         unlink(file, Object);
     }
+
     if (inBus.has(this)) {
       const {bus, file} = inBus.get(this);
       inBus.delete(this);

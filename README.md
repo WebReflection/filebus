@@ -50,6 +50,24 @@ fb.send('ready', {optional: 'data'}).then(() => {
   // executed once the content has been written
   // and also synced with the system
 });
+
+
+// HANDSHAKE
+
+// whenever the input/output files are between two
+// different instances of FileBus or two different PLs
+// the handshake, from one of the two sides, grants
+// that both instances are setup and ready to react
+
+fb = new FileBus('.python', '.js', true);
+// Python counterpart: fb = FileBus('.js', '.python')
+
+// will happen once Python responds
+fb.on('handshake', () => {
+  fb.send('update-display', 'Hello World');
+});
+
+fb.handshake();
 ```
 
 

@@ -10,5 +10,7 @@ def ping(data = ''):
   fb.send('pong')
 
 from filebus import FileBus
-fb = FileBus('pingpong.txt', 'pingpong.txt')
+fb = FileBus('inout.txt', 'inout.txt')
 fb.on('ping', ping)
+
+# simply wait for JS handshake
