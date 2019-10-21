@@ -7,7 +7,7 @@ fb.on('pong', () => {
   setTimeout(() => fb.send('ping'), 1000);
 });
 
-fb.on('handshake', () => {
+fb.once('handshake', () => {
   // send the first ping
   fb.send('ping');
 });

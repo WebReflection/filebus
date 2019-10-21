@@ -63,7 +63,7 @@ fb = new FileBus('.python', '.js', true);
 // Python counterpart: fb = FileBus('.js', '.python')
 
 // will happen once Python responds
-fb.on('handshake', () => {
+fb.once('handshake', () => {
   fb.send('update-display', 'Hello World');
 });
 
