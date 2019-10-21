@@ -42,7 +42,7 @@ fb.stop();
 // OUTPUT related API
 
 // will write the following into the output file
-// "event {"optional":"data"}"
+// "ready {"optional":"data"}"
 // if there is a watcher listening for "ready",
 // or any other event name, it will be invoked
 // receiving the object {optional: 'data'}
@@ -103,3 +103,9 @@ time.sleep(0.1)
 # close and cleanup the file
 fb.stop()
 ```
+
+## Practical Applications
+
+The [countdown](https://github.com/WebReflection/countdown#readme) project is fully based on _FileBus_ to drive e-paper displays, via Python 3, from Node.js.
+
+Check its [JS](https://github.com/WebReflection/countdown/blob/master/js/countdown.js#L137) side, or one of its [Python](https://github.com/WebReflection/countdown/blob/master/pimoroni/countdown.py#L40) counterparts.
