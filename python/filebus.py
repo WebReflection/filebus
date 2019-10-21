@@ -1,12 +1,27 @@
-import os
 import json
+import os
 import random
+import time
 
 # import EventEmitter, INotifyWait from 'inotifywait-spawn'
-import sys
-pwd = os.path.dirname(__file__)
-pwd = os.path.join(pwd, '..', '..', 'inotifywait-spawn', 'python')
-sys.path.insert(1, os.path.realpath(pwd))
+def loadINW():
+  import sys
+  pwd = os.path.dirname(__file__)
+  inwPath = os.path.join(pwd, '..', '..', 'inotifywait-spawn', 'python')
+  if os.path.exists(os.path.realpath(inwPath)):
+    sys.path.insert(1, os.path.realpath(inwPath))
+  else:
+    inwPath = os.path.join(pwd, '..', 'node_modules', 'inotifywait-spawn', 'python')
+    if os.path.exists(os.path.realpath(inwPath)):
+      sys.path.insert(1, os.path.realpath(inwPath))
+    else:
+      print('')
+      print('Please install \x1B[1minotifywait-spawn\x1B[0m via `npm i`')
+      print('')
+      time.sleep(2)
+      sys.exit(1)
+
+loadINW()
 
 from inotifywait import EventEmitter, INotifyWait
 

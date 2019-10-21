@@ -1,6 +1,7 @@
 coverage/
 example/
 node_modules/
+python/__pycache__/
 rollup/
 test/
 package-lock.json
