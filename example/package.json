@@ -1,6 +1,6 @@
 {
   "private": true,
   "scripts": {
-    "start": "node pingpong.js & python pingpong.py"
+    "start": "node pingpong.js & python -OO pingpong.py"
   }
 }

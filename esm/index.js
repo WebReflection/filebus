@@ -43,9 +43,15 @@ export default class FileBus extends EventEmitter {
       if (output) {
         const secret = '__JS__' + ++random;
         secrets.set(this, secret);
-        this.on(HANDHSAKE, value => {
-          if (outBus.has(this) && secret !== value && value[0] !== '!')
-            this.send(HANDHSAKE, '!' + value);
+        this.on(HANDHSAKE, data => {
+          if (
+            outBus.has(this) &&
+            data.reply === false &&
+            secret !== data.secret
+          ) {
+            data.reply = true;
+            this.send(HANDHSAKE, data);
+          }
         });
       }
     }
@@ -61,11 +67,12 @@ export default class FileBus extends EventEmitter {
           this.emit('handshake');
       };
       if (secrets.has(this)) {
+        let attempts = 0;
         let timer = 0;
         const secret = secrets.get(this);
-        this.on(HANDHSAKE, function handshake(value) {
+        this.on(HANDHSAKE, function handshake(data) {
           /* istanbul ignore else */
-          if (value[0] === '!' && value.slice(1) === secret) {
+          if (data.reply && secret === data.secret) {
             clearTimeout(timer);
             this.removeListener(HANDHSAKE, handshake);
             emit();
@@ -75,7 +82,8 @@ export default class FileBus extends EventEmitter {
           /* istanbul ignore else */
           if (self.active) {
             timer = setTimeout(handshake, delay, self, delay * 1.5);
-            self.send(HANDHSAKE, secret);
+            self.send(HANDHSAKE, {attempts, reply: false, secret});
+            attempts++;
           }
         }(this, 250));
       }

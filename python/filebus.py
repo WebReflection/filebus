@@ -83,6 +83,7 @@ class FileBus(EventEmitter):
   def __init__(self, input = '', output = '', cleanup = False):
     super(FileBus, self).__init__()
 
+    self.__HANDSHAKE = '__handshake__'
     self.__shake = False
     self.__secret = ''
     self.cleanup = cleanup
@@ -96,7 +97,7 @@ class FileBus(EventEmitter):
       self.__in = FileInBus(self, os.path.abspath(input))
       if self.__out is not None:
         self.__secret = '__Python__' + str(random.random())
-        self.on('__handshake__', self.__onhandshake)
+        self.on(self.__HANDSHAKE, self.__onhandshake)
     else:
       self.__in = None
 
@@ -124,26 +125,32 @@ class FileBus(EventEmitter):
       if self.cleanup and file != otherFile:
         os.unlink(file)
 
-  def __onhandshake(self, secret):
-    if self.__out is not None and secret != self.__secret and secret[0:1] != '!':
-      self.send('__handshake__', '!' + secret)
+  def __onhandshake(self, data):
+    if self.__out is not None and data['reply'] == False and data['secret'] != self.__secret:
+      data['reply'] = True
+      self.send(self.__HANDSHAKE, data)
 
-  def __handshake(self, secret):
-    if secret[0:1] == '!' and secret[1:] == self.__secret:
+  def __handshake(self, data):
+    if data['reply'] and data['secret'] == self.__secret:
       self.__shake = False
-      self.removeListener('__handshake__', self.__handshake)
+      self.removeListener(self.__HANDSHAKE, self.__handshake)
       if self.active:
         self.emit('handshake')
 
   def handshake(self):
     if self.active:
       if len(self.__secret) > 0:
-        self.on('__handshake__', self.__handshake)
         self.__shake = True
+        self.on(self.__HANDSHAKE, self.__handshake)
+        attempts = 0
         delay = 0.25
         while self.__shake:
-          self.send('__handshake__', self.__secret)
+          self.send(
+            self.__HANDSHAKE,
+            {'attempts': attempts, 'reply': False, 'secret': self.__secret}
+          )
           time.sleep(delay)
+          attempts = attempts + 1
           delay = delay * 1.5
       else:
         self.emit('handshake')
