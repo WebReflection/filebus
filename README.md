@@ -10,7 +10,7 @@ A communication channel based on files watcher.
 
 ### Example
 
-You can clone this repository, enter into the `example` folder and launch `npm start` to see Python and NodeJS communicating with each other.
+You can clone this repository and [inotifywait-spawn](https://github.com/WebReflection/inotifywait-spawn) in the same folder, enter into the `filebus/example` directory and launch `npm start` to see Python and NodeJS communicating with each other.
 
 You can also grasp most of this utility via the following example:
 
